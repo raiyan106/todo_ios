@@ -10,8 +10,8 @@ import UIKit
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
   
-    let array : [String] = ["Item1", "Item2", "Item3", "Item4", "Item5"]
     
+    var items = [Item]()
     let cellReuseIdentifier = "itemCell"
 
     @IBOutlet weak var tableView: UITableView!
@@ -23,6 +23,17 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         
         tableView.delegate = self
         tableView.dataSource = self
+        
+        
+        let i = Item("Item1")
+        items.append(i)
+        let a = Item("Item2")
+        items.append(a)
+        let b = Item("Item3")
+        items.append(b)
+        let c = Item("Item14")
+        items.append(c)
+        let d = Item("Item15")
        
     }
 
@@ -33,23 +44,111 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return array.count
+        return items.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = self.tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier)
         
         
-        cell?.textLabel?.text = array[indexPath.row]
+        cell?.textLabel?.text = items[indexPath.row].title
+        
+        if items[indexPath.row].isChecked == true{
+            cell?.accessoryType = .checkmark
+        }
+        else{
+            cell?.accessoryType = .none
+        }
         return cell!
     }
     
     
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+                items[indexPath.row].isChecked = !items[indexPath.row].isChecked
         
-        tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
         tableView.deselectRow(at: indexPath, animated: true)
+        tableView.reloadData()
+
     }
+    
+    
+    
+    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
+        
+        // action one
+        let editAction = UITableViewRowAction(style: .default, title: "Update", handler: { (action, indexPath) in
+            
+            let alert = self.newAlertController("Update Item")
+            
+            let add = UIAlertAction(title: "Update", style: .default, handler: { (action) in
+                self.items[indexPath.row].title = alert.textFields![0].text!
+                self.tableView.reloadData()
+            })
+            
+            alert.addTextField(configurationHandler: { (text) in
+                text.placeholder = "new value"
+            })
+            
+            alert.addAction(add)
+            self.present(alert, animated: true, completion: nil)
+            
+        })
+        editAction.backgroundColor = UIColor.cyan
+        
+        // action two
+        let deleteAction = UITableViewRowAction(style: .default, title: "Delete", handler: { (action, indexPath) in
+//         remove the item from the data model
+            self.items.remove(at: indexPath.row)
+            
+                        // delete the table view row
+            self.tableView.deleteRows(at: [indexPath], with: .fade)
+        })
+        
+        deleteAction.backgroundColor = UIColor.red
+        
+        return [editAction, deleteAction]
+    }
+    
+    
+    @IBAction func addItem(_ sender: Any) {
+        
+        var textValue = UITextField()
+        let alertController = UIAlertController(title: "Add New Item", message: "", preferredStyle: .alert)
+        
+        // Create the actions
+        let addAction = UIAlertAction(title: "Confirm", style: .default) { (action) in
+            
+                let newItem = Item(textValue.text!)
+                self.items.append(newItem)
+                self.tableView.reloadData()
+            
+        }
+        
+        // Add the actions
+        alertController.addAction(addAction)
+        
+        alertController.addTextField { (text) in
+            text.placeholder = "new item"
+            textValue = text
+        }
+
+        // Present the controller
+        
+        present(alertController, animated: true, completion: nil)
+        
+    }
+    
+    
+    func newAlertController(_ title: String)-> UIAlertController{
+        let alert = UIAlertController(title: title, message: "", preferredStyle: .alert)
+        
+        
+        return alert
+    }
+    
+    
+    
+    
 }
 
