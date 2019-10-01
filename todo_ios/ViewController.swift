@@ -7,9 +7,11 @@
 //
 
 import UIKit
+import RealmSwift
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-  
+    let realm = try! Realm()
+    
     
     var items = [Item]()
     let cellReuseIdentifier = "itemCell"
@@ -24,36 +26,28 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         tableView.delegate = self
         tableView.dataSource = self
         
-        
-        let i = Item("Item1")
-        items.append(i)
-        let a = Item("Item2")
-        items.append(a)
-        let b = Item("Item3")
-        items.append(b)
-        let c = Item("Item14")
-        items.append(c)
-        let d = Item("Item15")
+        let itemList = realm.objects(Item.self)
+        print(Realm.Configuration.defaultConfiguration.fileURL!)
+        print(itemList)
        
     }
 
-
-    
-    
     
     
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return items.count
+        let itemList = realm.objects(Item.self)
+        return itemList.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let itemList = realm.objects(Item.self)
         let cell = self.tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier)
         
         
-        cell?.textLabel?.text = items[indexPath.row].title
+        cell?.textLabel?.text = itemList[indexPath.row].title
         
-        if items[indexPath.row].isChecked == true{
+        if itemList[indexPath.row].isChecked == true{
             cell?.accessoryType = .checkmark
         }
         else{
@@ -65,7 +59,14 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-                items[indexPath.row].isChecked = !items[indexPath.row].isChecked
+        let itemList = realm.objects(Item.self)
+        
+            try! realm.write {
+                itemList[indexPath.row].isChecked = !itemList[indexPath.row].isChecked
+            }
+        
+        
+        
         
         tableView.deselectRow(at: indexPath, animated: true)
         tableView.reloadData()
@@ -119,8 +120,12 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         // Create the actions
         let addAction = UIAlertAction(title: "Confirm", style: .default) { (action) in
             
-                let newItem = Item(textValue.text!)
-                self.items.append(newItem)
+            let newItem = Item()
+            newItem.title = textValue.text!
+            
+                //self.items.append(newItem)
+                self.saveInRealm(newItem)
+            
                 self.tableView.reloadData()
             
         }
@@ -147,6 +152,18 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         return alert
     }
     
+//    Save a new Item in Realm Database
+    func saveInRealm(_ item: Item){
+        do{
+            try realm.write {
+                realm.add(item)
+            }
+        }
+        catch{
+            print(error)
+        }
+        
+    }
     
     
     

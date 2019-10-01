@@ -7,12 +7,15 @@
 //
 
 import Foundation
+import RealmSwift
 
-struct Item{
-    var title: String
-    var isChecked: Bool = false
+class Item: Object{
+   @objc dynamic var title: String?
+    @objc dynamic var isChecked: Bool = false
     
-    init(_ title: String) {
-        self.title = title
-    }
+//     init(_ title: String) {
+//        self.title = title
+//    }
+
+   
 }
