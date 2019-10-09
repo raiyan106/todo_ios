@@ -10,8 +10,10 @@ import UIKit
 import RealmSwift
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-    let realm = try! Realm()
     
+    var realm: Realm!
+    let a = "Hello world"
+    var itemList: Results<Item>!
     
     var items = [Item]()
     let cellReuseIdentifier = "itemCell"
@@ -19,6 +21,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     @IBOutlet weak var tableView: UITableView!
     override func viewDidLoad() {
         super.viewDidLoad()
+        realm = try! Realm()
         
         self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
         self.tableView.tableFooterView = UIView()
@@ -83,7 +86,13 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             let alert = self.newAlertController("Update Item")
             
             let add = UIAlertAction(title: "Update", style: .default, handler: { (action) in
-                self.items[indexPath.row].title = alert.textFields![0].text!
+//                self.items[indexPath.row].title = alert.textFields![0].text!
+                
+                let itemList = self.realm.objects(Item.self)
+                try! self.realm.write {
+                    itemList[indexPath.row].title = alert.textFields![0].text!
+                }
+                
                 self.tableView.reloadData()
             })
             
@@ -100,7 +109,11 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         // action two
         let deleteAction = UITableViewRowAction(style: .default, title: "Delete", handler: { (action, indexPath) in
 //         remove the item from the data model
-            self.items.remove(at: indexPath.row)
+//            self.items.remove(at: indexPath.row)
+            let itemList = self.realm.objects(Item.self)
+            try! self.realm.write {
+                self.realm.delete(itemList[indexPath.row])
+            }
             
                         // delete the table view row
             self.tableView.deleteRows(at: [indexPath], with: .fade)
