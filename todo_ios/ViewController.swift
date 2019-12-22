@@ -39,7 +39,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        let itemList = realm.objects(Item.self)
+        itemList = realm.objects(Item.self)
         return itemList.count
     }
     
@@ -90,6 +90,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                 
                 let itemList = self.realm.objects(Item.self)
                 try! self.realm.write {
+                    guard let _ = alert.textFields![0].text, !alert.textFields![0].text!.isEmpty else{
+                        return;
+                    }
                     itemList[indexPath.row].title = alert.textFields![0].text!
                 }
                 
@@ -100,7 +103,13 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                 text.placeholder = "new value"
             })
             
+            let cancel = UIAlertAction(title: "Cancel", style: .default) { (action) in
+                self.dismiss(animated: true, completion: nil)
+            }
             alert.addAction(add)
+            alert.addAction(cancel)
+            
+            
             self.present(alert, animated: true, completion: nil)
             
         })
@@ -128,23 +137,30 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     @IBAction func addItem(_ sender: Any) {
         
         var textValue = UITextField()
-        let alertController = UIAlertController(title: "Add New Item", message: "", preferredStyle: .alert)
         
+        let alertController = self.newAlertController("Add New Item")
         // Create the actions
         let addAction = UIAlertAction(title: "Confirm", style: .default) { (action) in
             
             let newItem = Item()
+            guard let _ = textValue.text, !textValue.text!.isEmpty else{
+                return;
+            }
             newItem.title = textValue.text!
             
-                //self.items.append(newItem)
+            
+            //self.items.append(newItem)
                 self.saveInRealm(newItem)
             
                 self.tableView.reloadData()
             
         }
-        
+        let cancel = UIAlertAction(title: "Cancel", style: .default) { (action) in
+            self.dismiss(animated: true, completion: nil)
+        }
         // Add the actions
         alertController.addAction(addAction)
+        alertController.addAction(cancel)
         
         alertController.addTextField { (text) in
             text.placeholder = "new item"
